@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineMatch</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0a0a0f;--surface:#14141e;--border:#2a2a3a;--accent:#e8c84a;--accent2:#ff6b35;--text:#f0ede8;--muted:#8a8799;--dim:#5a5768}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh}
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 20px;background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(232,200,74,0.07) 0%,transparent 70%)}
+  .hero-tag{font-size:11px;letter-spacing:0.35em;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+  .hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(64px,14vw,140px);line-height:0.88;color:var(--text);margin-bottom:24px}
+  .hero-title span{color:var(--accent)}
+  .hero-sub{font-size:16px;color:var(--muted);max-width:380px;line-height:1.7;margin-bottom:48px}
+  .search-box{display:flex;width:100%;max-width:540px;border:1px solid var(--border);border-radius:4px;overflow:hidden}
+  .search-box input{flex:1;background:var(--surface);border:none;padding:16px 20px;color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;outline:none}
+  .search-box input::placeholder{color:var(--dim)}
+  .search-box button{background:var(--accent);border:none;padding:16px 24px;font-family:'Bebas Neue',sans-serif;font-size:18px;cursor:pointer;color:#0a0a0f;transition:opacity 0.2s}
+  .search-box button:hover{opacity:0.85}
+  .browse{max-width:1300px;margin:0 auto;padding:60px 24px}
+  .section-head{display:flex;align-items:baseline;gap:16px;margin-bottom:32px}
+  .section-title{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:0.02em}
+  .section-count{font-size:12px;color:var(--dim);letter-spacing:0.1em}
+  .filters{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;margin-bottom:32px;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px}
+  .filter-group{display:flex;flex-direction:column;gap:6px;flex:1;min-width:140px}
+  .filter-group label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--dim)}
+  .filter-group select,.filter-group input{background:#1a1a26;border:1px solid var(--border);color:var(--text);padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:13px;border-radius:4px;outline:none;appearance:none}
+  .filter-group select:focus,.filter-group input:focus{border-color:var(--accent)}
+  .filter-btn{padding:9px 20px;background:var(--accent2);border:none;color:white;font-family:'Bebas Neue',sans-serif;font-size:17px;cursor:pointer;border-radius:4px;transition:opacity 0.2s;white-space:nowrap}
+  .filter-btn:hover{opacity:0.85}
+  .genre-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px}
+  .pill{padding:6px 16px;border:1px solid var(--border);border-radius:100px;font-size:12px;cursor:pointer;background:transparent;color:var(--muted);transition:all 0.2s;font-family:'DM Sans',sans-serif}
+  .pill:hover{border-color:var(--accent);color:var(--accent)}
+  .pill.active{background:var(--accent);border-color:var(--accent);color:#0a0a0f;font-weight:500}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:2px}
+  .card{background:var(--surface);cursor:pointer;overflow:hidden;aspect-ratio:2/3;position:relative;transition:transform 0.25s}
+  .card:hover{transform:scale(1.03);z-index:2}
+  .card-inner{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:18px;background:linear-gradient(180deg,transparent 30%,rgba(10,10,15,0.97) 100%)}
+  .card-emoji{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:60px;opacity:0.08;user-select:none}
+  .card-genre{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  .card-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.03em;line-height:1.1;margin-bottom:6px}
+  .card-meta{display:flex;gap:10px;font-size:12px;color:var(--dim)}
+  .card-rating{color:var(--accent);font-weight:500}
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;align-items:center;justify-content:center;padding:20px}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:6px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;padding:40px;position:relative}
+  .modal-close{position:absolute;top:16px;right:20px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer}
+  .modal-close:hover{color:var(--text)}
+  .modal-genre{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  .modal-title{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:0.02em;line-height:0.95;margin-bottom:8px}
+  .modal-meta{display:flex;gap:16px;font-size:13px;color:var(--muted);margin-bottom:20px;flex-wrap:wrap}
+  .modal-overview{font-size:15px;line-height:1.75;color:var(--muted);margin-bottom:28px}
+  .modal-info{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+  .info-block label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:4px}
+  .info-block p{font-size:14px;color:var(--text)}
+  .rec-title{font-family:'Bebas Neue',sans-serif;font-size:28px;margin-bottom:16px;color:var(--accent2)}
+  .rec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+  .rec-card{background:#1a1a26;border:1px solid var(--border);padding:12px;border-radius:4px;cursor:pointer;transition:border-color 0.2s}
+  .rec-card:hover{border-color:var(--accent)}
+  .rec-card-title{font-family:'Bebas Neue',sans-serif;font-size:15px;margin-bottom:4px}
+  .rec-card-meta{font-size:11px;color:var(--dim)}
+  .loading{text-align:center;padding:80px;color:var(--dim);font-size:14px;letter-spacing:0.1em;text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <p class="hero-tag">📽 4,800+ Films · AI Powered</p>
+  <h1 class="hero-title">CINE<span>MATCH</span></h1>
+  <p class="hero-sub">Find movies you'll love. Search a title to get smart recommendations.</p>
+  <div class="search-box">
+    <input type="text" id="heroSearch" placeholder="e.g. Interstellar, The Dark Knight…" onkeydown="if(event.key==='Enter')heroSearchFn()">
+    <button onclick="heroSearchFn()">FIND</button>
+  </div>
+</section>
+
+<section class="browse">
+  <div class="section-head">
+    <h2 class="section-title">BROWSE ALL</h2>
+    <span class="section-count" id="movieCount">Loading…</span>
+  </div>
+  <div class="filters">
+    <div class="filter-group" style="flex:2;min-width:200px">
+      <label>Search Title</label>
+      <input type="text" id="searchInput" placeholder="Type to filter…" oninput="applyFilters()">
+    </div>
+    <div class="filter-group">
+      <label>Min Rating</label>
+      <select id="ratingFilter" onchange="applyFilters()">
+        <option value="0">Any Rating</option>
+        <option value="6">6+</option>
+        <option value="7">7+</option>
+        <option value="7.5">7.5+</option>
+        <option value="8">8+</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Sort By</label>
+      <select id="sortFilter" onchange="applyFilters()">
+        <option value="popularity">Popularity</option>
+        <option value="rating">Rating</option>
+        <option value="year_desc">Year (Newest)</option>
+        <option value="year_asc">Year (Oldest)</option>
+        <option value="title">Title A–Z</option>
+      </select>
+    </div>
+    <button class="filter-btn" onclick="resetFilters()">RESET</button>
+  </div>
+  <div class="genre-bar" id="genreBar"></div>
+  <div class="grid" id="movieGrid"></div>
+  <div id="loadMore" style="text-align:center;padding:40px;display:none">
+    <button class="filter-btn" onclick="showMore()" style="padding:12px 32px;font-size:20px">LOAD MORE</button>
+  </div>
+</section>
+
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+const GENRES=['Action','Adventure','Animation','Comedy','Crime','Documentary','Drama','Family','Fantasy','History','Horror','Music','Mystery','Romance','Science Fiction','Thriller','War','Western'];
+const EMOJIS={'Action':'⚔️','Adventure':'🗺️','Animation':'✨','Comedy':'😂','Crime':'🔍','Documentary':'📹','Drama':'🎭','Family':'👨‍👩‍👧','Fantasy':'🧙','History':'📜','Horror':'👻','Music':'🎵','Mystery':'🕵️','Romance':'❤️','Science Fiction':'🚀','Thriller':'😰','War':'🎖️','Western':'🤠'};
+let ALL_MOVIES=[],filtered=[],shown=0;
+const PAGE=40;
+let activeGenre='';
+
+fetch('/movies').then(r=>r.json()).then(data=>{
+  ALL_MOVIES=data;
+  buildGenreBar();
+  applyFilters();
+});
+
+function buildGenreBar(){
+  document.getElementById('genreBar').innerHTML=GENRES.map(g=>`<button class="pill" onclick="setGenre('${g}')">${g}</button>`).join('');
+}
+
+function setGenre(g){
+  activeGenre=activeGenre===g?'':g;
+  document.querySelectorAll('.pill').forEach(p=>{p.classList.toggle('active',p.textContent===activeGenre)});
+  applyFilters();
+}
+
+function applyFilters(){
+  const search=document.getElementById('searchInput').value.toLowerCase().trim();
+  const minRating=parseFloat(document.getElementById('ratingFilter').value);
+  const sort=document.getElementById('sortFilter').value;
+  filtered=ALL_MOVIES.filter(m=>{
+    if(search&&!m.t.toLowerCase().includes(search))return false;
+    if(m.r<minRating)return false;
+    if(activeGenre&&!m.g.includes(activeGenre))return false;
+    return true;
+  });
+  filtered.sort((a,b)=>{
+    if(sort==='rating')return b.r-a.r;
+    if(sort==='year_desc')return b.y-a.y;
+    if(sort==='year_asc')return a.y-b.y;
+    if(sort==='title')return a.t.localeCompare(b.t);
+    return 0;
+  });
+  shown=0;
+  document.getElementById('movieGrid').innerHTML='';
+  document.getElementById('movieCount').textContent=`${filtered.length} films`;
+  showMore();
+}
+
+function showMore(){
+  const grid=document.getElementById('movieGrid');
+  filtered.slice(shown,shown+PAGE).forEach(m=>grid.insertAdjacentHTML('beforeend',cardHTML(m)));
+  shown+=PAGE;
+  document.getElementById('loadMore').style.display=shown<filtered.length?'block':'none';
+}
+
+function cardHTML(m){
+  const genre=m.g[0]||'Film';
+  const emoji=EMOJIS[genre]||'🎬';
+  return `<div class="card" onclick="openModal(${m.id})">
+    <div class="card-emoji">${emoji}</div>
+    <div class="card-inner">
+      <div class="card-genre">${genre}</div>
+      <div class="card-title">${m.t}</div>
+      <div class="card-meta"><span class="card-rating">★ ${m.r?m.r.toFixed(1):'N/A'}</span><span>${m.y||'—'}</span>${m.rt?'<span>'+m.rt+'m</span>':''}</div>
+    </div>
+  </div>`;
+}
+
+function openModal(id){
+  const m=ALL_MOVIES.find(x=>x.id===id);
+  if(!m)return;
+  document.getElementById('modalContent').innerHTML=`
+    <div class="modal-genre">${m.g.join(' · ')}</div>
+    <h2 class="modal-title">${m.t}</h2>
+    <div class="modal-meta"><span>★ ${m.r?m.r.toFixed(1):'N/A'}</span><span>📅 ${m.y||'—'}</span>${m.rt?'<span>⏱ '+m.rt+' min</span>':''}</div>
+    <p class="modal-overview">${m.o||'No description available.'}</p>
+    <div class="modal-info">
+      <div class="info-block"><label>Director</label><p>${m.d||'—'}</p></div>
+      <div class="info-block"><label>Cast</label><p>${m.c?m.c.join(', '):'—'}</p></div>
+    </div>
+    <div class="rec-title">YOU MIGHT ALSO LIKE</div>
+    <div class="loading" id="recLoading">Finding similar films…</div>
+    <div class="rec-grid" id="recGrid"></div>
+  `;
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow='hidden';
+  fetch('/recommend?title='+encodeURIComponent(m.t))
+    .then(r=>r.json())
+    .then(recs=>{
+      document.getElementById('recLoading').style.display='none';
+      const recGrid=document.getElementById('recGrid');
+      if(!recs.length){recGrid.innerHTML='<p style="color:var(--dim)">No similar movies found.</p>';return}
+      recGrid.innerHTML=recs.map(r=>`
+        <div class="rec-card" onclick="closeModalDirect();setTimeout(()=>openModal(${r.id}),300)">
+          <div class="rec-card-title">${r.title}</div>
+          <div class="rec-card-meta">★ ${r.vote_average?r.vote_average.toFixed(1):'N/A'} · ${r.year||'—'}</div>
+        </div>`).join('');
+    });
+}
+
+function closeModal(e){if(e.target===document.getElementById('modalBg'))closeModalDirect()}
+function closeModalDirect(){document.getElementById('modalBg').classList.remove('open');document.body.style.overflow='';}
+function heroSearchFn(){
+  const val=document.getElementById('heroSearch').value.trim();
+  if(!val)return;
+  document.getElementById('searchInput').value=val;
+  document.querySelector('.browse').scrollIntoView({behavior:'smooth'});
+  setTimeout(applyFilters,400);
+}
+function resetFilters(){
+  document.getElementById('searchInput').value='';
+  document.getElementById('ratingFilter').value='0';
+  document.getElementById('sortFilter').value='popularity';
+  activeGenre='';
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  applyFilters();
+}
+</script>
+</body>
+</html>
